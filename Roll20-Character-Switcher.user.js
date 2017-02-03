@@ -2,7 +2,7 @@
 // @name         Roll20 Character Switcher
 // @namespace    de.idrinth
 // @homepage     https://github.com/Idrinth/Roll20-Character-Switcher
-// @version      1.0.1
+// @version      1.0.2
 // @description  Switches the chatting character to the one who's sheet you clicked on
 // @author       Idrinth
 // @match        https://app.roll20.net/editor/
@@ -17,6 +17,9 @@
             if (e.target.tagName === 'BUTTON' && e.target.hasAttribute('type') && e.target.getAttribute('type') === 'roll') {
                 var character = e.target;
                 while (!character.hasAttribute('data-characterid')) {
+                    if(!character.parentNode) {
+                        return;
+                    }
                     character = character.parentNode;
                 }
                 var id = 'character|' + character.getAttribute('data-characterid');
