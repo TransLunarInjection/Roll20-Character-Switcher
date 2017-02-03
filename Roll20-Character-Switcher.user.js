@@ -2,7 +2,7 @@
 // @name         Roll20 Character Switcher
 // @namespace    de.idrinth
 // @homepage     https://github.com/Idrinth/Roll20-Character-Switcher
-// @version      1.0.0
+// @version      1.0.1
 // @description  Switches the chatting character to the one who's sheet you clicked on
 // @author       Idrinth
 // @match        https://app.roll20.net/editor/
@@ -13,7 +13,6 @@
     'use strict';
     var a = function() {
         document.getElementsByTagName('body')[0].addEventListener('mousedown', function(event) {
-            console.log('US mousedown');
             var e = window.event || event;
             if (e.target.tagName === 'BUTTON' && e.target.hasAttribute('type') && e.target.getAttribute('type') === 'roll') {
                 var character = e.target;
