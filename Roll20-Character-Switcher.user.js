@@ -2,8 +2,8 @@
 // @name         Roll20 Character Switcher
 // @namespace    de.idrinth
 // @homepage     https://github.com/Idrinth/Roll20-Character-Switcher
-// @version      1.0.3
-// @description  Switches the chatting character to the one who's sheet you clicked on
+// @version      1.1.0
+// @description  Switches the chatting character to the one who's sheet or macro you clicked on
 // @author       Idrinth
 // @match        https://app.roll20.net/editor/
 // @grant        none
@@ -14,17 +14,25 @@
     var a = function() {
         document.getElementsByTagName('body')[0].addEventListener('mousedown', function(event) {
             var e = window.event || event;
-            if (e.target.tagName !== 'BUTTON' || !e.target.hasAttribute('type') || e.target.getAttribute('type') !== 'roll') {
+            if (e.target.tagName !== 'BUTTON') {
                 return;
             }
-            var character = e.target;
-            while (!character.hasAttribute('data-characterid')) {
-                if(!character.parentNode) {
-                    return;
+            var id='';
+            if(e.target.hasAttribute('type') && e.target.getAttribute('type') === 'roll') {
+                var character = e.target;
+                while (!character.hasAttribute('data-characterid')) {
+                    if(!character.parentNode) {
+                        return;
+                    }
+                    character = character.parentNode;
                 }
-                character = character.parentNode;
+                id = 'character|' + character.getAttribute('data-characterid');
+            } else if(e.target.hasAttribute('class') && e.target.getAttribute('class') === 'btn' && e.target.parentNode.hasAttribute('data-macroid')) {
+                id = 'character|' + (e.target.parentNode.getAttribute('data-macroid')).split('|')[0];
             }
-            var id = 'character|' + character.getAttribute('data-characterid');
+            if(!id) {
+                return;
+            }
             var select = document.getElementById('speakingas');
             for (var i = 0; i < select.options.length; i++) {
                 if (select.options[i].value === id) {
