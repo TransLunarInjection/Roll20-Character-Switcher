@@ -11,30 +11,36 @@
 
 (function() {
     'use strict';
-    var charswitcher = function(event) {
+    var charswitcher = function(event, frame) {
         var e = window.event || event;
         if (e.target.tagName !== 'BUTTON') {
+            console.info("Not a character action %o", e);
             return;
         }
         var id='';
+
+        function findAttrInParentsOrFrameParents(target, attr) {
+            var usedFrame = false;
+            while (!target.hasAttribute(attr)) {
+                target = target.parentNode;
+                if (!target || !target.hasAttribute) {
+                    if (!frame || usedFrame) {
+                        console.error("Couldn't find charid in %o", e.target);
+                        return;
+                    }
+                    target = frame;
+                    usedFrame = true;
+                }
+            }
+            return target.getAttribute(attr);
+        }
+
+        console.info("Click on %o", e.target);
         if(e.target.hasAttribute('type') && e.target.getAttribute('type') === 'roll') {
-            var character = e.target;
-            while (!character.hasAttribute('data-characterid')) {
-                if(!character.parentNode) {
-                    return;
-                }
-                character = character.parentNode;
-            }
-            id = 'character|' + character.getAttribute('data-characterid');
+            console.info("Looks like a roll for %o", e.target);
+            id = 'character|' + findAttrInParentsOrFrameParents(e.target, 'data-characterid');
         } else if(e.target.hasAttribute('class') && e.target.getAttribute('class') === 'btn') {
-            var macro = e.target;
-            while (!macro.hasAttribute('data-macroid')) {
-                if(!macro.parentNode) {
-                    return;
-                }
-                macro = macro.parentNode;
-            }
-            id = 'character|' + (macro.getAttribute('data-macroid')).split('|')[0];
+            id = 'character|' + findAttrInParentsOrFrameParents(e.target, 'data-macroid');
         }
         if(!id) {
             return;
@@ -47,6 +53,34 @@
             }
         }
     };
-    document.getElementsByTagName('body')[0].addEventListener('mousedown', charswitcher);
-    document.getElementsByClassName('tokenactions')[0].addEventListener('mousedown', charswitcher);
+
+    function addCharSwitcher(doc, frame) {
+        function callback(evt) {
+            charswitcher(evt, frame);
+        }
+        doc.body.addEventListener('mousedown', callback);
+        var tokenActions = doc.getElementsByClassName('tokenactions')[0];
+        if (tokenActions) {
+            tokenActions.addEventListener('mousedown', callback);
+        }
+
+        var observer = new MutationObserver(function(mutations) {
+            for(const mutation of mutations) {
+                console.error
+                if (!mutation.addedNodes) continue;
+                for (const added of mutation.addedNodes) {
+                    if (added.tagName === 'IFRAME') {
+                        console.error("new iframe %o", added);
+                        added.addEventListener("load", function() {
+                            addCharSwitcher(added.contentWindow.document, added);
+                        });
+                    }
+                }
+
+            }
+        });
+
+        observer.observe(doc, {attributes: false, childList: true, characterData: false, subtree:true});
+    }
+    addCharSwitcher(document);
 })();
